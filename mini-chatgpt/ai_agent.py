@@ -8,6 +8,11 @@ from datetime import datetime
 
 import requests
 
+try:
+    import streamlit as st
+except Exception:
+    st = None
+
 # ==============================
 # 🔐 CONFIG
 # ==============================
@@ -35,7 +40,22 @@ def _load_env_file():
 
 
 _load_env_file()
-API_KEY = os.getenv("API_KEY") or os.getenv("api_key")
+
+
+def _get_api_key():
+    api_key = os.getenv("API_KEY") or os.getenv("api_key")
+    if api_key:
+        return api_key
+
+    if st is not None:
+        secrets = getattr(st, "secrets", None)
+        if secrets:
+            return secrets.get("API_KEY") or secrets.get("api_key")
+
+    return None
+
+
+API_KEY = _get_api_key()
 
 if not API_KEY:
     raise ValueError(
